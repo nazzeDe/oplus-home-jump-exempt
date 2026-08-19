@@ -3,6 +3,7 @@ package com.nazze.oplusjumpallowlist.ui
 import android.app.Activity
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -38,6 +39,11 @@ class SettingsActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // targetSdk 35 enables edge-to-edge by default; keep content below ActionBar/status bar
+        // so the activity title does not cover the search field.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(true)
+        }
         setContentView(R.layout.activity_settings)
 
         store = AllowlistStore(this)
