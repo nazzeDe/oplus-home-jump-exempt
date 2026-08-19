@@ -68,6 +68,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - 恢复系统「永久允许」对话框  
 - 修复桌面动画、手势等其它问题  
 
-## 许可与包名
+## 包名
 
-应用 ID：`com.nazze.oplusjumpallowlist`
+`com.nazze.oplusjumpallowlist`
+
+## License
+
+MIT © nazze \<nazze@qq.com\> — 见 [LICENSE](LICENSE)
