@@ -30,7 +30,6 @@ class SettingsActivity : Activity() {
     private lateinit var adapter: AppListAdapter
     private lateinit var searchInput: EditText
     private lateinit var showSystemSwitch: Switch
-    private lateinit var selectedCount: TextView
     private lateinit var loading: ProgressBar
     private lateinit var emptyView: TextView
 
@@ -51,7 +50,6 @@ class SettingsActivity : Activity() {
 
         searchInput = findViewById(R.id.search_input)
         showSystemSwitch = findViewById(R.id.show_system_apps)
-        selectedCount = findViewById(R.id.selected_count)
         loading = findViewById(R.id.loading)
         emptyView = findViewById(R.id.empty_view)
         val appList = findViewById<ListView>(R.id.app_list)
@@ -63,7 +61,6 @@ class SettingsActivity : Activity() {
                 selectedPackages.remove(packageName)
             }
             store.setPackages(selectedPackages)
-            updateSelectedCount()
         }
         appList.adapter = adapter
         appList.emptyView = emptyView
@@ -82,7 +79,6 @@ class SettingsActivity : Activity() {
             },
         )
 
-        updateSelectedCount()
         loadInstalledApps()
     }
 
@@ -136,9 +132,5 @@ class SettingsActivity : Activity() {
         emptyView.setText(
             if (allApps.isEmpty()) R.string.app_list_loading_empty else R.string.app_list_filter_empty,
         )
-    }
-
-    private fun updateSelectedCount() {
-        selectedCount.text = getString(R.string.selected_count_format, selectedPackages.size)
     }
 }
