@@ -1,67 +1,61 @@
-# 应用跳转白名单（Oplus Jump Allowlist）
+# 应用跳转白名单
 
-LSPosed module for OnePlus / OPPO / realme (OxygenOS / ColorOS).
+ColorOS / OxygenOS 上按 **调用方包名** 跳过应用间跳转确认（如「允许 30 天」）的 LSPosed 模块。
 
-Package: `com.nazze.oplusjumpallowlist`
+- 包名：`com.nazze.oplusjumpallowlist`
+- 版本：`0.1.0`
+- 勾选名单里的 App 作为 caller 启动其它应用时不弹确认；未勾选走系统原逻辑
+- 默认空名单；改名单热生效（读配置失败则不豁免）
+- 启停交给 LSPosed；应用内只有名单设置
 
-## What it does
+## 环境
 
-You pick **caller** apps in a settings allowlist. When an allowlisted package starts another app, ColorOS / OxygenOS skips the inter-app jump confirmation dialog (for example `允许 30 天`).
+- 已 Root + LSPosed
+- 机型验证：OnePlus PKX110 / ColorOS 16（`PKX110_16.0.1.301(CN01)`）
 
-- Allowlisted caller → jump is allowed at the intercept decision point; no confirm UI.
-- Everyone else → stock jump-intercept / dialog behavior.
-- Empty allowlist (default) → no callers are exempted.
-- Matching is by **caller package name**, not target app and not caller→callee pairs.
-- Changing the allowlist applies on later jumps without a reboot. If the config cannot be read, that jump is not exempted (fail-closed).
-- Module on/off is controlled in LSPosed; the app has no master switch.
-
-This module does **not** auto-follow the default Home / launcher role. Add launchers (for example Niagara / `bitpit.launcher`) yourself if you want them exempted.
-
-## Requirements
-
-- Rooted device with LSPosed
-- OxygenOS / ColorOS jump interception present on the build
-
-## Build
+## 构建
 
 ```bash
+cd /home/nazze/Studio/myrepo/oplus-home-jump-exempt
 JAVA_HOME=/usr/lib/jvm/java-17-openjdk ./gradlew --no-daemon :app:assembleDebug
 ```
 
-APK output:
+产物：`app/build/outputs/apk/debug/app-debug.apk`
 
-`app/build/outputs/apk/debug/app-debug.apk`
+## 安装
 
-## Install and enable
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-1. Install the APK.
-2. Open LSPosed → Modules → enable **应用跳转白名单**.
-3. Set scope to **系统框架 (`system`)** only.
-4. Reboot if LSPosed asks for a reload after install or update.
-5. Open the module app → search and check callers you want exempted (third-party list by default; enable **显示系统应用** to include system packages).
+1. LSPosed → 启用「应用跳转白名单」
+2. 作用域只勾 **`system`**（`system_server`）
+3. 首次启用 / 更新模块后按 LSPosed 提示重启
+4. 打开模块 → 搜索并勾选要豁免的调用方（如 Niagara / `bitpit.launcher`）
 
-Do **not** scope `com.oplus.securitypermission` for this allowlist module. The decision hook runs in `system_server`.
+不要把 `com.oplus.securitypermission` 加进作用域；决策点在 `system_server`。
 
-## Verify
+## 验证
 
-1. Leave the allowlist empty, or leave a normal third-party app unchecked. Trigger a jump that ColorOS normally intercepts → the system confirm dialog should still appear.
-2. Check a caller such as `bitpit.launcher`. From that app, open several previously blocked targets → no jump confirm dialog.
-3. Uncheck that caller → the same jump path can show the stock dialog again (no reboot required for allowlist edits).
-4. Disable the module in LSPosed → behavior returns to stock; saved allowlist data may remain but no longer applies.
-
-## Troubleshooting
-
-| Symptom | Check |
+| 步骤 | 预期 |
 | --- | --- |
-| No effect after install | Module enabled; scope includes `system`; reboot/reload after APK update |
-| Every jump still prompts | Caller package is checked in the module settings (launcher package, not the target) |
-| Unexpected exemptions | Allowlist should only contain packages you intend; empty list exempts nobody |
-| Hook not loading | Confirm LSPosed logs mention this module under the `system` / framework process |
+| 勾选 Niagara，从桌面打开会弹窗的 App | 无跳转确认 |
+| 取消勾选后再打开 | 恢复系统弹窗（改名单无需重启） |
+| LSPosed 关闭模块 | 完全恢复系统行为 |
 
-## Out of scope
+## 排障
 
-- Automatic Home / `ROLE_HOME` exemption
-- Caller→callee pair lists
-- Restoring a “forever allow” dialog UI
-- Unrelated ColorOS fixes (animations, recents, gestures)
-- Magisk / platform-signed system replacements
+| 现象 | 处理 |
+| --- | --- |
+| 完全无效 | 模块已启用、作用域含 `system`、装包后已按提示重启 |
+| 仍弹窗 | 勾的是 **调用方** 包名，不是目标 App |
+| Hook 未加载 | LSPosed 日志应有 `OplusJumpAllowlist` / `checkAllowStartActivity` |
+
+## 不做
+
+自动跟默认桌面、caller→callee 配对、恢复「永久允许」UI、其它 ColorOS 桌面/手势问题。
+
+## 技术摘要
+
+Hook：`com.android.server.am.OplusSecurityPermissionManager.checkAllowStartActivity`  
+命中白名单时返回 `-1`，跳过确认框。
