@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">应用跳转白名单</string>
+    <string name="settings_title">应用跳转白名单</string>
+    <string name="xposed_description">按调用方包名豁免 ColorOS / OxygenOS 应用跳转确认。</string>
+    <string name="settings_intro">勾选作为跳转调用方时需要豁免确认的应用。模块启停由 LSPosed 管理。</string>
+    <string name="search_apps_hint">搜索应用名或包名</string>
+    <string name="show_system_apps">显示系统应用</string>
+    <string name="selected_count_format">已选 %1$d 个调用方</string>
+    <string name="app_list_loading_empty">正在加载应用列表…</string>
+    <string name="app_list_filter_empty">没有匹配的应用</string>
+</resources>
