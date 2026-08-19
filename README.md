@@ -74,4 +74,4 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 ## License
 
-MIT © nazze \<nazze@qq.com\> — 见 [LICENSE](LICENSE)
+MIT © nazze (nazze@qq.com). 见 [LICENSE](LICENSE)。
