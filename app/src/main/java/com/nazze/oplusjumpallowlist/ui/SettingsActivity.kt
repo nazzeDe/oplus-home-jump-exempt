@@ -61,6 +61,8 @@ class SettingsActivity : Activity() {
                 selectedPackages.remove(packageName)
             }
             store.setPackages(selectedPackages)
+            // Re-apply so checked rows stay pinned to the top.
+            applyFilter()
         }
         appList.adapter = adapter
         appList.emptyView = emptyView
@@ -118,17 +120,22 @@ class SettingsActivity : Activity() {
     }
 
     private fun applyFilter() {
-        val query = searchInput.text?.toString()?.trim().orEmpty()
+        val query = searchInput.text?.toString().orEmpty()
         val showSystem = showSystemSwitch.isChecked
-        val filtered = allApps.asSequence()
-            .filter { showSystem || !it.isSystem }
-            .filter { item ->
-                query.isEmpty() ||
-                    item.label.contains(query, ignoreCase = true) ||
-                    item.packageName.contains(query, ignoreCase = true)
-            }
-            .toList()
-        adapter.submit(filtered, selectedPackages)
+        val byPackage = allApps.associateBy { it.packageName }
+        val ordered = AppListFilter.filterAndSort(
+            apps = allApps.map {
+                AppListFilter.Row(
+                    packageName = it.packageName,
+                    label = it.label,
+                    isSystem = it.isSystem,
+                )
+            },
+            selectedPackages = selectedPackages,
+            showSystem = showSystem,
+            query = query,
+        ).mapNotNull { byPackage[it.packageName] }
+        adapter.submit(ordered, selectedPackages)
         emptyView.setText(
             if (allApps.isEmpty()) R.string.app_list_loading_empty else R.string.app_list_filter_empty,
         )

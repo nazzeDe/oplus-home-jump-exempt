@@ -8,7 +8,8 @@ import java.io.File
  * Settings-process persistence for the caller allowlist.
  *
  * Uses [SharedPreferences.Editor.commit] so hook-side [de.robv.android.xposed.XSharedPreferences]
- * reloads observe the latest snapshot without restarting.
+ * reloads observe the latest snapshot without restarting. After each write, makes the real
+ * prefs file world-readable (including LSPosed misc-bridge paths) so `system_server` can read it.
  */
 class AllowlistStore(context: Context) {
     private val appContext = context.applicationContext
@@ -36,16 +37,18 @@ class AllowlistStore(context: Context) {
     }
 
     private fun makeWorldReadableBestEffort() {
-        try {
-            val sharedPrefsDir = File(appContext.applicationInfo.dataDir, "shared_prefs")
-            sharedPrefsDir.setExecutable(true, false)
-            sharedPrefsDir.setReadable(true, false)
-            val prefsFile = File(sharedPrefsDir, "${AllowlistPrefs.PREFS_NAME}.xml")
-            if (prefsFile.exists()) {
-                prefsFile.setReadable(true, false)
-            }
-        } catch (_: Throwable) {
-            // LSPosed can still bridge module private prefs into XSharedPreferences.
+        // LSPosed often redirects SharedPreferences to /data/misc/.../prefs/<package>/.
+        // Chmod that real file (via mFile); also chmod the conventional dataDir path as fallback.
+        val targets = linkedSetOf<File>()
+        PrefsAccess.sharedPreferencesFile(prefs)?.let { targets.add(it) }
+        targets.add(
+            PrefsAccess.conventionalPrefsFile(
+                File(appContext.applicationInfo.dataDir),
+                AllowlistPrefs.PREFS_NAME,
+            ),
+        )
+        for (file in targets) {
+            PrefsAccess.ensureWorldReadable(file)
         }
     }
 }

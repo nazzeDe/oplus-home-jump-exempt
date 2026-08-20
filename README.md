@@ -58,8 +58,9 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 | 现象 | 可检查项 |
 | --- | --- |
 | 完全没效果 | 模块是否启用；作用域是否含 `system`；启用/更新后是否已重启 |
-| 还在弹窗 | 白名单是否勾了对的调用方包名 |
+| 还在弹窗 | 白名单是否勾了对的调用方包名；打开一次本应用设置并改勾选以刷新可读配置 |
 | 怀疑 Hook 没挂上 | 看 LSPosed 日志里是否出现本模块及 `checkAllowStartActivity` |
+| 曾有效后来又弹窗 | 改名单后是否仍可读：日志应有 `allow without confirm`；若无，打开设置改一次勾选 |
 
 ## 不会做的事
 
